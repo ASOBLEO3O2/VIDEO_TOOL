@@ -114,7 +114,7 @@
 <div class="wrap">
   <div class="hero">
     <h1>動画変換ツール</h1>
-    <p>GitHub Pages 用の standalone 版です。</p>
+    <p>GitHub Pages 用です。</p>
   </div>
 
   <div class="grid">
@@ -138,7 +138,7 @@
       </div>
 
       <div class="row" id="instagramBox">
-        <span class="label">インスタ保存済み動画</span>
+        <span class="label">動画</span>
         <div class="drop row">
           <input id="videoInput" type="file" accept="video/*">
           <div class="kv" id="videoName">未選択</div>
@@ -276,6 +276,9 @@
       state.loaded = true;
       setStatus("FFmpeg の準備ができました。");
       return ffmpeg;
+    } catch (err) {
+      console.error(err);
+      throw err;
     } finally {
       state.loading = false;
     }
@@ -305,6 +308,70 @@
     const data = await ffmpeg.readFile("output.mp4");
 
     try { await ffmpeg.deleteFile("input_video.mp4"); } catch (_) {}
+    try { await ffmpeg.deleteFile("output.mp4"); } catch (_) {}
+
+    return new Blob([data.buffer], { type: "video/mp4" });
+  }
+
+  async function createImageAudioVideo(params) {
+    const ffmpeg = await ensureLoaded();
+    const size = sizeFor(params.output);
+
+    await ffmpeg.writeFile("image1.png", await fetchFile(params.image1File));
+    await ffmpeg.writeFile("audio1", await fetchFile(params.audioFile));
+
+    if (params.image2File) {
+      await ffmpeg.writeFile("image2.png", await fetchFile(params.image2File));
+    }
+
+    const filter1 =
+      `[0:v]scale=${size.w}:${size.h}:force_original_aspect_ratio=decrease,` +
+      `pad=${size.w}:${size.h}:(ow-iw)/2:(oh-ih)/2,setsar=1[v0]`;
+
+    if (params.image2File) {
+      const filter2 =
+        `[1:v]scale=${size.w}:${size.h}:force_original_aspect_ratio=decrease,` +
+        `pad=${size.w}:${size.h}:(ow-iw)/2:(oh-ih)/2,setsar=1[v1]`;
+
+      const fc = `${filter1};${filter2};[v0][v1]concat=n=2:v=1:a=0[vout]`;
+
+      await ffmpeg.exec([
+        "-loop", "1", "-t", "5", "-i", "image1.png",
+        "-loop", "1", "-t", "5", "-i", "image2.png",
+        "-i", "audio1",
+        "-filter_complex", fc,
+        "-map", "[vout]",
+        "-map", "2:a:0",
+        "-shortest",
+        "-c:v", "libx264",
+        "-preset", "veryfast",
+        "-pix_fmt", "yuv420p",
+        "-c:a", "aac",
+        "-movflags", "+faststart",
+        "output.mp4"
+      ]);
+    } else {
+      await ffmpeg.exec([
+        "-loop", "1", "-i", "image1.png",
+        "-i", "audio1",
+        "-filter_complex", filter1,
+        "-map", "[v0]",
+        "-map", "1:a:0",
+        "-shortest",
+        "-c:v", "libx264",
+        "-preset", "veryfast",
+        "-pix_fmt", "yuv420p",
+        "-c:a", "aac",
+        "-movflags", "+faststart",
+        "output.mp4"
+      ]);
+    }
+
+    const data = await ffmpeg.readFile("output.mp4");
+
+    try { await ffmpeg.deleteFile("image1.png"); } catch (_) {}
+    try { await ffmpeg.deleteFile("image2.png"); } catch (_) {}
+    try { await ffmpeg.deleteFile("audio1"); } catch (_) {}
     try { await ffmpeg.deleteFile("output.mp4"); } catch (_) {}
 
     return new Blob([data.buffer], { type: "video/mp4" });
@@ -362,4 +429,52 @@
     } catch (err) {
       console.error(err);
       setStatus("FFmpeg 読込に失敗しました: " + (err && err.message ? err.message : err));
-    } finally
+    } finally {
+      els.loadBtn.disabled = false;
+    }
+  });
+
+  els.runBtn.addEventListener("click", async function() {
+    try {
+      els.runBtn.disabled = true;
+
+      if (state.mode === "instagram") {
+        if (!state.videoFile) {
+          setStatus("保存済み動画を選択してください。");
+          return;
+        }
+
+        setStatus("動画を変換しています...");
+        const blob = await convertVideo(state.videoFile, state.output);
+        showBlob(blob, "converted_" + state.output + ".mp4");
+      } else {
+        if (!state.image1File) {
+          setStatus("画像1を選択してください。");
+          return;
+        }
+        if (!state.audioFile) {
+          setStatus("音声を選択してください。");
+          return;
+        }
+
+        setStatus("画像と音声から動画を作成しています...");
+        const blob = await createImageAudioVideo({
+          image1File: state.image1File,
+          image2File: state.image2File,
+          audioFile: state.audioFile,
+          output: state.output
+        });
+        showBlob(blob, "image_audio_" + state.output + ".mp4");
+      }
+
+      setStatus("動画を書き出しました。");
+    } catch (err) {
+      console.error(err);
+      setStatus("処理に失敗しました: " + (err && err.message ? err.message : err));
+    } finally {
+      els.runBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
