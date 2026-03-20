@@ -1,497 +1,129 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>動画変換ツール</title>
-  <style>
-    :root{
-      --bg:#f4f7fb;
-      --card:#fff;
-      --line:#d9e1ee;
-      --text:#1f2a44;
-      --muted:#5f6b85;
-      --accent:#4a78ff;
-      --accent2:#335df0
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:"Yu Gothic","Meiryo",sans-serif;
-      background:var(--bg);
-      color:var(--text)
-    }
-    .wrap{max-width:1100px;margin:0 auto;padding:24px}
-    .hero{margin-bottom:20px}
-    .hero h1{margin:0 0 8px;font-size:30px}
-    .hero p{margin:0;color:var(--muted);line-height:1.8}
-    .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
-    @media(max-width:920px){
-      .grid{grid-template-columns:1fr}
-    }
-    .card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:18px;
-      box-shadow:0 10px 24px rgba(31,42,68,.06)
-    }
-    .card h2{margin:0 0 12px;font-size:20px}
-    .row{margin-top:14px}
-    .label{
-      display:block;
-      font-weight:700;
-      margin-bottom:8px;
-      font-size:14px
-    }
-    .actions{display:flex;gap:10px;flex-wrap:wrap}
-    .btn{
-      border:none;
-      border-radius:12px;
-      padding:12px 16px;
-      background:var(--accent);
-      color:#fff;
-      font-weight:700;
-      cursor:pointer
-    }
-    .btn.sub{
-      background:#eef3ff;
-      color:var(--accent2);
-      text-decoration:none
-    }
-    .btn:disabled{opacity:.55;cursor:default}
-    .pill{
-      display:inline-flex;
-      padding:8px 12px;
-      border:1px solid var(--line);
-      border-radius:999px;
-      background:#fff;
-      cursor:pointer;
-      font-weight:700
-    }
-    .pill input{display:none}
-    .pill.active{
-      background:var(--accent);
-      border-color:var(--accent);
-      color:#fff
-    }
-    .stack{display:flex;gap:10px;flex-wrap:wrap}
-    .drop{
-      border:2px dashed #c8d4ea;
-      border-radius:14px;
-      padding:16px;
-      background:#f9fbff
-    }
-    input[type=file]{width:100%}
-    .note{
-      margin-top:10px;
-      color:var(--muted);
-      font-size:13px;
-      word-break:break-all
-    }
-    .status{
-      margin-top:14px;
-      padding:12px 14px;
-      border-radius:12px;
-      background:#f6f8fc;
-      border:1px solid #e3eaf5;
-      min-height:48px;
-      line-height:1.7
-    }
-    video{
-      width:100%;
-      max-height:520px;
-      background:#000;
-      border-radius:14px
-    }
-    .download{display:inline-flex;margin-top:12px}
-    .download a{
-      background:#1f9d55;
-      color:#fff;
-      text-decoration:none;
-      padding:12px 16px;
-      border-radius:12px;
-      font-weight:700
-    }
-    .kv{margin-top:10px;font-size:14px;color:var(--muted)}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>動画変換ツール</title>
+
+<style>
+body{
+font-family:Arial;
+background:#f4f7fb;
+margin:0;
+padding:20px;
+}
+.card{
+background:#fff;
+padding:20px;
+border-radius:10px;
+max-width:900px;
+margin:auto;
+box-shadow:0 10px 20px rgba(0,0,0,0.08);
+}
+button{
+padding:12px 18px;
+border:none;
+background:#4a78ff;
+color:#fff;
+border-radius:8px;
+font-weight:bold;
+cursor:pointer;
+}
+video{
+width:100%;
+margin-top:15px;
+background:#000;
+}
+</style>
+
 </head>
 <body>
-<div class="wrap">
-  <div class="hero">
-    <h1>動画変換ツール</h1>
-    <p>GitHub Pages 用の standalone 版です。</p>
-  </div>
 
-  <div class="grid">
-    <div class="card">
-      <h2>設定</h2>
+<div class="card">
 
-      <div class="row">
-        <span class="label">モード</span>
-        <div class="stack" id="modeGroup">
-          <label class="pill active"><input type="radio" name="mode" value="instagram" checked>インスタ動画変換</label>
-          <label class="pill"><input type="radio" name="mode" value="imageAudio">画像＋音声で動画化</label>
-        </div>
-      </div>
+<h2>動画変換ツール</h2>
 
-      <div class="row">
-        <span class="label">仕上がり方向</span>
-        <div class="stack" id="outputGroup">
-          <label class="pill active"><input type="radio" name="output" value="vertical" checked>縦</label>
-          <label class="pill"><input type="radio" name="output" value="horizontal">横</label>
-        </div>
-      </div>
+<input type="file" id="videoInput"><br><br>
 
-      <div class="row" id="instagramBox">
-        <span class="label">インスタ保存済み動画</span>
-        <div class="actions">
-          <a class="btn sub" href="https://indown.io/reels/ja" target="_blank" rel="noopener noreferrer">保存サイトを開く</a>
-        </div>
-        <div class="drop row">
-          <input id="videoInput" type="file" accept="video/*">
-          <div class="kv" id="videoName">未選択</div>
-        </div>
-      </div>
+<button id="loadBtn">FFmpeg読み込み</button>
+<button id="runBtn">変換</button>
 
-      <div class="row" id="imageAudioBox" style="display:none;">
-        <span class="label">画像＋音声</span>
-        <div class="drop">
-          <div class="row">
-            <label class="label" for="image1Input">画像1</label>
-            <input id="image1Input" type="file" accept="image/*">
-            <div class="kv" id="image1Name">未選択</div>
-          </div>
-          <div class="row">
-            <label class="label" for="image2Input">画像2（任意）</label>
-            <input id="image2Input" type="file" accept="image/*">
-            <div class="kv" id="image2Name">未選択</div>
-          </div>
-          <div class="row">
-            <label class="label" for="audioInput">音声</label>
-            <input id="audioInput" type="file" accept="audio/*">
-            <div class="kv" id="audioName">未選択</div>
-          </div>
-        </div>
-      </div>
+<div id="status">待機中</div>
 
-      <div class="row actions">
-        <button class="btn" id="loadBtn">FFmpegを読み込む</button>
-        <button class="btn" id="runBtn">動画を書き出す</button>
-      </div>
+<video id="preview" controls></video>
 
-      <div class="status" id="status">最初に FFmpeg を読み込んでください。</div>
-    </div>
-
-    <div class="card">
-      <h2>出力</h2>
-      <video id="preview" controls playsinline></video>
-      <div class="download" id="downloadWrap" style="display:none;">
-        <a id="downloadLink" href="#" download="output.mp4">MP4をダウンロード</a>
-      </div>
-    </div>
-  </div>
 </div>
 
 <script type="module">
-  import { FFmpeg } from "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js";
-  import { fetchFile, toBlobURL } from "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js";
 
-  const state = {
-    ffmpeg: null,
-    loaded: false,
-    loading: false,
-    mode: "instagram",
-    output: "vertical",
-    videoFile: null,
-    image1File: null,
-    image2File: null,
-    audioFile: null,
-    objectUrl: ""
-  };
+import { FFmpeg } from "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js";
+import { fetchFile } from "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js";
 
-  const els = {
-    modeGroup: document.getElementById("modeGroup"),
-    outputGroup: document.getElementById("outputGroup"),
-    instagramBox: document.getElementById("instagramBox"),
-    imageAudioBox: document.getElementById("imageAudioBox"),
-    videoInput: document.getElementById("videoInput"),
-    image1Input: document.getElementById("image1Input"),
-    image2Input: document.getElementById("image2Input"),
-    audioInput: document.getElementById("audioInput"),
-    videoName: document.getElementById("videoName"),
-    image1Name: document.getElementById("image1Name"),
-    image2Name: document.getElementById("image2Name"),
-    audioName: document.getElementById("audioName"),
-    loadBtn: document.getElementById("loadBtn"),
-    runBtn: document.getElementById("runBtn"),
-    status: document.getElementById("status"),
-    preview: document.getElementById("preview"),
-    downloadWrap: document.getElementById("downloadWrap"),
-    downloadLink: document.getElementById("downloadLink")
-  };
+const status = document.getElementById("status");
+const preview = document.getElementById("preview");
 
-  function setStatus(msg) {
-    els.status.textContent = msg;
-  }
+let ffmpeg = null;
+let loaded = false;
 
-  function sizeFor(output) {
-    return output === "horizontal"
-      ? { w: 1280, h: 720 }
-      : { w: 720, h: 1280 };
-  }
+async function loadFFmpeg(){
 
-  function resetUrl() {
-    if (state.objectUrl) {
-      URL.revokeObjectURL(state.objectUrl);
-      state.objectUrl = "";
-    }
-  }
+status.innerText = "読み込み中…";
 
-  function updatePills(group) {
-    group.querySelectorAll(".pill").forEach(function(p) {
-      p.classList.toggle("active", p.querySelector("input").checked);
-    });
-  }
+ffmpeg = new FFmpeg();
 
-  async function ensureLoaded() {
-    if (state.loaded && state.ffmpeg) return state.ffmpeg;
+await ffmpeg.load({
 
-    if (state.loading) {
-      while (state.loading) {
-        await new Promise(function(resolve) {
-          setTimeout(resolve, 200);
-        });
-      }
-      return state.ffmpeg;
-    }
+coreURL: "./ffmpeg/ffmpeg-core.js",
+wasmURL: "./ffmpeg/ffmpeg-core.wasm",
+workerURL: "./ffmpeg/ffmpeg-core.worker.js",
+classWorkerURL: "./ffmpeg/worker.js"
 
-    state.loading = true;
+});
 
-    try {
-      setStatus("FFmpeg を読み込んでいます... 初回は少し時間がかかります。");
-      console.log("FFMPEG LOAD START");
+loaded = true;
 
-      const ffmpeg = new FFmpeg();
+status.innerText = "準備完了";
 
-      ffmpeg.on("log", function(ev) {
-        if (ev && ev.message) {
-          console.log("[ffmpeg]", ev.message);
-        }
-      });
+}
 
-      const baseURL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm";
+async function convert(){
 
-      await ffmpeg.load({
-        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm")
-      });
+if(!loaded){
+status.innerText = "先に読み込みしてください";
+return;
+}
 
-      state.ffmpeg = ffmpeg;
-      state.loaded = true;
-      setStatus("FFmpeg の準備ができました。");
-      console.log("FFMPEG LOAD DONE");
+const file = document.getElementById("videoInput").files[0];
 
-      return ffmpeg;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    } finally {
-      state.loading = false;
-    }
-  }
+if(!file){
+status.innerText = "動画を選択してください";
+return;
+}
 
-  async function convertVideo(file, output) {
-    const ffmpeg = await ensureLoaded();
-    const size = sizeFor(output);
+status.innerText = "変換中…";
 
-    await ffmpeg.writeFile("input_video.mp4", await fetchFile(file));
+await ffmpeg.writeFile("input.mp4", await fetchFile(file));
 
-    const vf =
-      `scale=${size.w}:${size.h}:force_original_aspect_ratio=decrease,` +
-      `pad=${size.w}:${size.h}:(ow-iw)/2:(oh-ih)/2,setsar=1`;
+await ffmpeg.exec([
+"-i","input.mp4",
+"-vf","transpose=2",
+"output.mp4"
+]);
 
-    await ffmpeg.exec([
-      "-i", "input_video.mp4",
-      "-vf", vf,
-      "-c:v", "libx264",
-      "-preset", "veryfast",
-      "-pix_fmt", "yuv420p",
-      "-movflags", "+faststart",
-      "-c:a", "aac",
-      "output.mp4"
-    ]);
+const data = await ffmpeg.readFile("output.mp4");
 
-    const data = await ffmpeg.readFile("output.mp4");
+const blob = new Blob([data.buffer], {type:"video/mp4"});
 
-    try { await ffmpeg.deleteFile("input_video.mp4"); } catch (_) {}
-    try { await ffmpeg.deleteFile("output.mp4"); } catch (_) {}
+preview.src = URL.createObjectURL(blob);
 
-    return new Blob([data.buffer], { type: "video/mp4" });
-  }
+status.innerText = "完了";
 
-  async function createImageAudioVideo(params) {
-    const ffmpeg = await ensureLoaded();
-    const size = sizeFor(params.output);
+}
 
-    await ffmpeg.writeFile("image1.png", await fetchFile(params.image1File));
-    await ffmpeg.writeFile("audio1", await fetchFile(params.audioFile));
+document.getElementById("loadBtn").onclick = loadFFmpeg;
+document.getElementById("runBtn").onclick = convert;
 
-    if (params.image2File) {
-      await ffmpeg.writeFile("image2.png", await fetchFile(params.image2File));
-    }
-
-    const filter1 =
-      `[0:v]scale=${size.w}:${size.h}:force_original_aspect_ratio=decrease,` +
-      `pad=${size.w}:${size.h}:(ow-iw)/2:(oh-ih)/2,setsar=1[v0]`;
-
-    if (params.image2File) {
-      const filter2 =
-        `[1:v]scale=${size.w}:${size.h}:force_original_aspect_ratio=decrease,` +
-        `pad=${size.w}:${size.h}:(ow-iw)/2:(oh-ih)/2,setsar=1[v1]`;
-
-      const fc = `${filter1};${filter2};[v0][v1]concat=n=2:v=1:a=0[vout]`;
-
-      await ffmpeg.exec([
-        "-loop", "1", "-t", "5", "-i", "image1.png",
-        "-loop", "1", "-t", "5", "-i", "image2.png",
-        "-i", "audio1",
-        "-filter_complex", fc,
-        "-map", "[vout]",
-        "-map", "2:a:0",
-        "-shortest",
-        "-c:v", "libx264",
-        "-preset", "veryfast",
-        "-pix_fmt", "yuv420p",
-        "-c:a", "aac",
-        "-movflags", "+faststart",
-        "output.mp4"
-      ]);
-    } else {
-      await ffmpeg.exec([
-        "-loop", "1", "-i", "image1.png",
-        "-i", "audio1",
-        "-filter_complex", filter1,
-        "-map", "[v0]",
-        "-map", "1:a:0",
-        "-shortest",
-        "-c:v", "libx264",
-        "-preset", "veryfast",
-        "-pix_fmt", "yuv420p",
-        "-c:a", "aac",
-        "-movflags", "+faststart",
-        "output.mp4"
-      ]);
-    }
-
-    const data = await ffmpeg.readFile("output.mp4");
-
-    try { await ffmpeg.deleteFile("image1.png"); } catch (_) {}
-    try { await ffmpeg.deleteFile("image2.png"); } catch (_) {}
-    try { await ffmpeg.deleteFile("audio1"); } catch (_) {}
-    try { await ffmpeg.deleteFile("output.mp4"); } catch (_) {}
-
-    return new Blob([data.buffer], { type: "video/mp4" });
-  }
-
-  function showBlob(blob, filename) {
-    resetUrl();
-    state.objectUrl = URL.createObjectURL(blob);
-    els.preview.src = state.objectUrl;
-    els.downloadLink.href = state.objectUrl;
-    els.downloadLink.download = filename;
-    els.downloadWrap.style.display = "inline-flex";
-  }
-
-  els.modeGroup.addEventListener("change", function(e) {
-    if (e.target.name === "mode") {
-      state.mode = e.target.value;
-      updatePills(els.modeGroup);
-      els.instagramBox.style.display = state.mode === "instagram" ? "" : "none";
-      els.imageAudioBox.style.display = state.mode === "imageAudio" ? "" : "none";
-    }
-  });
-
-  els.outputGroup.addEventListener("change", function(e) {
-    if (e.target.name === "output") {
-      state.output = e.target.value;
-      updatePills(els.outputGroup);
-    }
-  });
-
-  els.videoInput.addEventListener("change", function(e) {
-    state.videoFile = e.target.files[0] || null;
-    els.videoName.textContent = state.videoFile ? state.videoFile.name : "未選択";
-  });
-
-  els.image1Input.addEventListener("change", function(e) {
-    state.image1File = e.target.files[0] || null;
-    els.image1Name.textContent = state.image1File ? state.image1File.name : "未選択";
-  });
-
-  els.image2Input.addEventListener("change", function(e) {
-    state.image2File = e.target.files[0] || null;
-    els.image2Name.textContent = state.image2File ? state.image2File.name : "未選択";
-  });
-
-  els.audioInput.addEventListener("change", function(e) {
-    state.audioFile = e.target.files[0] || null;
-    els.audioName.textContent = state.audioFile ? state.audioFile.name : "未選択";
-  });
-
-  els.loadBtn.addEventListener("click", async function() {
-    try {
-      els.loadBtn.disabled = true;
-      await ensureLoaded();
-    } catch (err) {
-      console.error(err);
-      setStatus("FFmpeg 読込に失敗しました: " + (err && err.message ? err.message : err));
-    } finally {
-      els.loadBtn.disabled = false;
-    }
-  });
-
-  els.runBtn.addEventListener("click", async function() {
-    try {
-      els.runBtn.disabled = true;
-
-      if (state.mode === "instagram") {
-        if (!state.videoFile) {
-          setStatus("保存済み動画を選択してください。");
-          return;
-        }
-
-        setStatus("動画を変換しています...");
-        const blob = await convertVideo(state.videoFile, state.output);
-        showBlob(blob, "converted_" + state.output + ".mp4");
-      } else {
-        if (!state.image1File) {
-          setStatus("画像1を選択してください。");
-          return;
-        }
-        if (!state.audioFile) {
-          setStatus("音声を選択してください。");
-          return;
-        }
-
-        setStatus("画像と音声から動画を作成しています...");
-        const blob = await createImageAudioVideo({
-          image1File: state.image1File,
-          image2File: state.image2File,
-          audioFile: state.audioFile,
-          output: state.output
-        });
-        showBlob(blob, "image_audio_" + state.output + ".mp4");
-      }
-
-      setStatus("動画を書き出しました。");
-    } catch (err) {
-      console.error(err);
-      setStatus("処理に失敗しました: " + (err && err.message ? err.message : err));
-    } finally {
-      els.runBtn.disabled = false;
-    }
-  });
 </script>
+
 </body>
 </html>
