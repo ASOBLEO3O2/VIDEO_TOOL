@@ -1,129 +1,23 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>動画変換ツール</title>
-
-<style>
-body{
-font-family:Arial;
-background:#f4f7fb;
-margin:0;
-padding:20px;
-}
-.card{
-background:#fff;
-padding:20px;
-border-radius:10px;
-max-width:900px;
-margin:auto;
-box-shadow:0 10px 20px rgba(0,0,0,0.08);
-}
-button{
-padding:12px 18px;
-border:none;
-background:#4a78ff;
-color:#fff;
-border-radius:8px;
-font-weight:bold;
-cursor:pointer;
-}
-video{
-width:100%;
-margin-top:15px;
-background:#000;
-}
-</style>
-
-</head>
-<body>
-
-<div class="card">
-
-<h2>動画変換ツール</h2>
-
-<input type="file" id="videoInput"><br><br>
-
-<button id="loadBtn">FFmpeg読み込み</button>
-<button id="runBtn">変換</button>
-
-<div id="status">待機中</div>
-
-<video id="preview" controls></video>
-
-</div>
-
 <script type="module">
 
 import { FFmpeg } from "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js";
 import { fetchFile } from "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js";
 
-const status = document.getElementById("status");
-const preview = document.getElementById("preview");
+let ffmpeg;
+let loaded=false;
 
-let ffmpeg = null;
-let loaded = false;
-
-async function loadFFmpeg(){
-
-status.innerText = "読み込み中…";
+async function loadFF(){
 
 ffmpeg = new FFmpeg();
 
 await ffmpeg.load({
-
-coreURL: "./ffmpeg/ffmpeg-core.js",
-wasmURL: "./ffmpeg/ffmpeg-core.wasm",
-workerURL: "./ffmpeg/ffmpeg-core.worker.js",
-classWorkerURL: "./ffmpeg/worker.js"
-
+coreURL:"./ffmpeg/ffmpeg-core.js",
+wasmURL:"./ffmpeg/ffmpeg-core.wasm"
 });
 
-loaded = true;
-
-status.innerText = "準備完了";
-
-}
-
-async function convert(){
-
-if(!loaded){
-status.innerText = "先に読み込みしてください";
-return;
-}
-
-const file = document.getElementById("videoInput").files[0];
-
-if(!file){
-status.innerText = "動画を選択してください";
-return;
-}
-
-status.innerText = "変換中…";
-
-await ffmpeg.writeFile("input.mp4", await fetchFile(file));
-
-await ffmpeg.exec([
-"-i","input.mp4",
-"-vf","transpose=2",
-"output.mp4"
-]);
-
-const data = await ffmpeg.readFile("output.mp4");
-
-const blob = new Blob([data.buffer], {type:"video/mp4"});
-
-preview.src = URL.createObjectURL(blob);
-
-status.innerText = "完了";
+loaded=true;
+status.innerText="準備完了";
 
 }
-
-document.getElementById("loadBtn").onclick = loadFFmpeg;
-document.getElementById("runBtn").onclick = convert;
 
 </script>
-
-</body>
-</html>
