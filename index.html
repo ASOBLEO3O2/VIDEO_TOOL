@@ -170,44 +170,61 @@
     });
   }
 
-  async function ensureLoaded() {
-    if (state.loaded && state.ffmpeg) return state.ffmpeg;
+ async function ensureLoaded() {
+  if (state.loaded && state.ffmpeg) return state.ffmpeg;
 
-    if (state.loading) {
-      while (state.loading) {
-        await new Promise(function(resolve) {
-          setTimeout(resolve, 200);
-        });
-      }
-      return state.ffmpeg;
+  if (state.loading) {
+    setStatus("FFmpeg 読込待機中...");
+    while (state.loading) {
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
-
-    state.loading = true;
-
-    try {
-      setStatus("FFmpeg を読み込んでいます...");
-      const ffmpeg = new FFmpeg();
-
-      ffmpeg.on("log", function(ev) {
-        if (ev && ev.message) console.log("[ffmpeg]", ev.message);
-      });
-
-      await ffmpeg.load({
-        coreURL: "./ffmpeg/ffmpeg-core.js",
-        wasmURL: "./ffmpeg/ffmpeg-core.wasm"
-      });
-
-      state.ffmpeg = ffmpeg;
-      state.loaded = true;
-      setStatus("FFmpeg の準備ができました。");
-      return ffmpeg;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    } finally {
-      state.loading = false;
-    }
+    return state.ffmpeg;
   }
+
+  state.loading = true;
+  els.loadBtn.disabled = true;
+
+  try {
+    setStatus("1/4 FFmpeg本体を初期化しています...");
+    const ffmpeg = new FFmpeg();
+
+    ffmpeg.on("log", function(ev) {
+      if (ev && ev.message) {
+        console.log("[ffmpeg]", ev.message);
+      }
+    });
+
+    console.log("load start: index.js loaded");
+    setStatus("2/4 core.js を読み込んでいます...");
+
+    const loadPromise = ffmpeg.load({
+      coreURL: "./ffmpeg/ffmpeg-core.js",
+      wasmURL: "./ffmpeg/ffmpeg-core.wasm"
+    });
+
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("FFmpeg読込タイムアウト（20秒）")), 20000);
+    });
+
+    await Promise.race([loadPromise, timeoutPromise]);
+
+    console.log("load done");
+    setStatus("3/4 読込完了、準備中...");
+
+    state.ffmpeg = ffmpeg;
+    state.loaded = true;
+
+    setStatus("4/4 FFmpeg の準備ができました。");
+    return ffmpeg;
+  } catch (err) {
+    console.error("ensureLoaded error:", err);
+    setStatus("FFmpeg 読込に失敗しました: " + (err?.message || err));
+    throw err;
+  } finally {
+    state.loading = false;
+    els.loadBtn.disabled = false;
+  }
+}
 
   async function convertVideo(file, output) {
     const ffmpeg = await ensureLoaded();
