@@ -491,6 +491,12 @@
       els.runBtn.disabled = false;
     }
   });
+  } catch (err) {
+    console.error(err);
+    if (statusEl) {
+      statusEl.textContent = "起動失敗: " + (err?.message || err);
+    }
+  }    
 </script>
 </body>
 </html>
