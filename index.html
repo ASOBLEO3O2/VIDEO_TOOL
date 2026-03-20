@@ -1,12 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>動画変換</title>
+</head>
+<body>
+
+<input type="file" id="video">
+<button onclick="load()">FFmpeg読み込み</button>
+<button onclick="run()">変換</button>
+
+<div id="status"></div>
+<video id="out" controls></video>
+
 <script type="module">
 
-import { FFmpeg } from "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js";
+import { FFmpeg } from "./ffmpeg/worker.js";
 import { fetchFile } from "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js";
 
 let ffmpeg;
-let loaded=false;
+let ready=false;
 
-async function loadFF(){
+async function load(){
+
+document.getElementById("status").innerText="読み込み中";
 
 ffmpeg = new FFmpeg();
 
@@ -15,9 +32,41 @@ coreURL:"./ffmpeg/ffmpeg-core.js",
 wasmURL:"./ffmpeg/ffmpeg-core.wasm"
 });
 
-loaded=true;
-status.innerText="準備完了";
+ready=true;
+
+document.getElementById("status").innerText="準備完了";
 
 }
 
+async function run(){
+
+if(!ready){
+alert("先に読み込み");
+return;
+}
+
+let file=document.getElementById("video").files[0];
+
+await ffmpeg.writeFile("in.mp4", await fetchFile(file));
+
+await ffmpeg.exec([
+"-i","in.mp4",
+"-vf","transpose=2",
+"out.mp4"
+]);
+
+let data=await ffmpeg.readFile("out.mp4");
+
+let blob=new Blob([data.buffer],{type:"video/mp4"});
+
+document.getElementById("out").src=URL.createObjectURL(blob);
+
+}
+
+window.load=load;
+window.run=run;
+
 </script>
+
+</body>
+</html>
