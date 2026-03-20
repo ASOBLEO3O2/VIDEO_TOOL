@@ -185,8 +185,24 @@
 </div>
 
 <script type="module">
-  import { FFmpeg } from "./ffmpeg/index.js";
-  import { fetchFile } from "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js";
+  const statusEl = document.getElementById("status");
+  const setBootStatus = (msg) => {
+    console.log("[boot]", msg);
+    if (statusEl) statusEl.textContent = msg;
+  };
+
+  try {
+    setBootStatus("module start");
+
+    const { FFmpeg } = await import("./ffmpeg/index.js");
+    setBootStatus("ffmpeg index ok");
+
+    const { fetchFile } = await import("https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js");
+    setBootStatus("util ok");
+
+    window.__FFmpeg = FFmpeg;
+    window.__fetchFile = fetchFile;
+
   
   const state = {
     ffmpeg: null,
